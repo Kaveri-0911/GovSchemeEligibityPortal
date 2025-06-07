@@ -13,6 +13,7 @@ import AdminPanel from './pages/AdminPanel';
 // Components
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute';
 
 function App() {
   return (
@@ -27,7 +28,14 @@ function App() {
               <Route path="/eligibility" element={<EligibilityForm />} />
               <Route path="/schemes" element={<SchemeExplorer />} />
               <Route path="/schemes/:id" element={<SchemeDetails />} />
-              <Route path="/admin" element={<AdminPanel />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminPanel />
+                  </ProtectedAdminRoute>
+                } 
+              />
             </Routes>
           </AnimatePresence>
         </main>

@@ -17,10 +17,14 @@ import {
   Eye,
   TrendingUp,
   Clock,
+  LogOut,
+  Shield,
+  Settings,
 } from 'lucide-react';
 
 import { Scheme, SchemeCategory } from '../types';
 import useSchemeStore from '../store/useSchemeStore';
+import useAdminStore from '../store/useAdminStore';
 
 interface AdminScheme extends Omit<Scheme, 'id' | 'imageUrl' | 'lastUpdated'> {
   id?: string;
@@ -36,6 +40,8 @@ interface AdminScheme extends Omit<Scheme, 'id' | 'imageUrl' | 'lastUpdated'> {
 
 const AdminPanel: React.FC = () => {
   const { schemes, addScheme, updateScheme, deleteScheme } = useSchemeStore();
+  const { admin, logoutAdmin } = useAdminStore();
+  
   const [adminSchemes, setAdminSchemes] = useState<AdminScheme[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingScheme, setEditingScheme] = useState<AdminScheme | null>(null);
@@ -219,6 +225,12 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      logoutAdmin();
+    }
+  };
+
   const filteredSchemes = adminSchemes.filter(scheme => {
     const matchesSearch = scheme.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          scheme.ministry.toLowerCase().includes(searchQuery.toLowerCase());
@@ -239,6 +251,11 @@ const AdminPanel: React.FC = () => {
     .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
     .slice(0, 5);
 
+  // Check permissions
+  const canDelete = admin?.permissions.includes('delete_scheme');
+  const canEdit = admin?.permissions.includes('edit_scheme');
+  const canCreate = admin?.permissions.includes('create_scheme');
+
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
@@ -253,18 +270,35 @@ const AdminPanel: React.FC = () => {
             <div>
               <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
               <p className="text-gray-600">Manage government schemes and monitor performance</p>
+              <div className="flex items-center mt-2 text-sm text-gray-500">
+                <Shield size={16} className="mr-1" />
+                Logged in as: <span className="font-medium ml-1">{admin?.username}</span>
+                <span className="mx-2">•</span>
+                <span className="capitalize">{admin?.role?.replace('_', ' ')}</span>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                resetForm();
-                setEditingScheme(null);
-                setShowAddForm(true);
-              }}
-              className="btn btn-primary flex items-center mt-4 md:mt-0"
-            >
-              <Plus size={18} className="mr-2" />
-              Add New Scheme
-            </button>
+            <div className="flex items-center space-x-3 mt-4 md:mt-0">
+              {canCreate && (
+                <button
+                  onClick={() => {
+                    resetForm();
+                    setEditingScheme(null);
+                    setShowAddForm(true);
+                  }}
+                  className="btn btn-primary flex items-center"
+                >
+                  <Plus size={18} className="mr-2" />
+                  Add New Scheme
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="btn btn-outline flex items-center text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <LogOut size={18} className="mr-2" />
+                Logout
+              </button>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -725,18 +759,22 @@ const AdminPanel: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(scheme)}
-                          className="text-primary hover:text-primary-dark"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(scheme.id!)}
-                          className="text-error hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleEdit(scheme)}
+                            className="text-primary hover:text-primary-dark"
+                          >
+                            <Edit size={16} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(scheme.id!)}
+                            className="text-error hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                         {scheme.applicationLink && (
                           <a
                             href={scheme.applicationLink}
