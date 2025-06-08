@@ -1,6 +1,6 @@
 # 🏛️ Government Schemes Portal – One Platform for All Welfare Benefits
 
-**Built for INNOHACK 2025 by Team BoltNation**  
+**Built for INNOHACK 2025 by Team HackStack**  
 A centralized web platform to help Indian citizens discover, explore, and apply for government schemes based on their eligibility.
 
 ---
