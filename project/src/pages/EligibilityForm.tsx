@@ -12,22 +12,29 @@ import useSpeechRecognition from '../hooks/useSpeechRecognition';
 import { getRecommendedSchemes } from '../utils/eligibilityChecker';
 
 interface FormData {
+  // Personal Information
   name: string;
   age: number;
   gender: string;
   location: string;
+  
+  // Demographics
   category: string;
   income: number;
   education: string;
+  
+  // Employment
   employmentStatus: string;
+  
+  // Government ID
   aadhaarNumber: string;
 }
 
 const EligibilityForm: React.FC = () => {
   const navigate = useNavigate();
   const { user, updateProfile, register: registerUser } = useUserStore();
-  const { register, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm<FormData>({
-    defaultValues: {
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+    defaultValues: () => ({
       name: user?.name || '',
       age: user?.age || undefined,
       gender: user?.gender || '',
@@ -37,7 +44,7 @@ const EligibilityForm: React.FC = () => {
       education: user?.education || '',
       employmentStatus: user?.employmentStatus || '',
       aadhaarNumber: user?.aadhaarNumber || '',
-    }
+    })
   });
   const { schemes, fetchSchemes } = useSchemeStore();
   
@@ -82,7 +89,7 @@ const EligibilityForm: React.FC = () => {
       }
     }
   };
-
+  
   // Pre-fill form with user data if available
   useEffect(() => {
     if (user) {
@@ -109,21 +116,26 @@ const EligibilityForm: React.FC = () => {
       });
     }
   }, [user, setValue]);
-
+  
+  // Fetch schemes on component mount
   useEffect(() => {
     fetchSchemes();
   }, [fetchSchemes]);
-
+  
+  // Update form data when fields change
   const formValues = watch();
   useEffect(() => {
     setFormData(formValues);
   }, [formValues]);
-
+  
+  // Voice input effect
   useEffect(() => {
     if (transcript && listeningField) {
+      // Format transcript based on field type
       let value = transcript;
       
       if (listeningField === 'age' || listeningField === 'income') {
+        // Extract numbers from transcript
         const numbers = transcript.match(/\d+/g);
         if (numbers && numbers.length > 0) {
           value = numbers[0];
@@ -136,53 +148,7 @@ const EligibilityForm: React.FC = () => {
       setListeningField('');
     }
   }, [transcript, listeningField, setValue, resetTranscript, stopListening]);
-
-  const validateStep = async (step: number) => {
-    let fieldsToValidate: (keyof FormData)[] = [];
-    
-    switch (step) {
-      case 0:
-        fieldsToValidate = ['name', 'age', 'gender', 'location'];
-        break;
-      case 1:
-        fieldsToValidate = ['category', 'income', 'education'];
-        break;
-      case 2:
-        fieldsToValidate = ['employmentStatus'];
-        break;
-      case 3:
-        fieldsToValidate = ['aadhaarNumber'];
-        break;
-    }
-    
-    const result = await trigger(fieldsToValidate);
-    return result;
-  };
-
-  const nextStep = async () => {
-    if (currentStep < steps.length - 1) {
-      const isValid = await validateStep(currentStep);
-      if (isValid) {
-        setCurrentStep(currentStep + 1);
-      }
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const goToStep = async (step: number) => {
-    if (step < currentStep) {
-      const isValid = await validateStep(step);
-      if (isValid) {
-        setCurrentStep(step);
-      }
-    }
-  };
-
+  
   const handleVoiceInput = (field: keyof FormData) => {
     if (isListening && listeningField === field) {
       stopListening();
@@ -193,17 +159,38 @@ const EligibilityForm: React.FC = () => {
       startListening();
     }
   };
-
+  
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+  
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+  
+  const goToStep = (step: number) => {
+    if (step < currentStep) {
+      setCurrentStep(step);
+    }
+  };
+  
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     setIsSubmitting(true);
     
     try {
+      // If user is logged in, update profile
       if (user) {
         await updateProfile(data);
       } else {
+        // Register new user
         await registerUser(data);
       }
       
+      // Find recommended schemes
       const tempUser = {
         ...user,
         ...data,
@@ -214,6 +201,8 @@ const EligibilityForm: React.FC = () => {
       
       const recommended = getRecommendedSchemes(tempUser, schemes);
       setRecommendedSchemes(recommended);
+      
+      // Move to results step
       setCurrentStep(4);
     } catch (error) {
       console.error('Form submission error:', error);
@@ -221,13 +210,14 @@ const EligibilityForm: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
+  
+  // Animation variants
   const formVariants = {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
     exit: { opacity: 0, x: 20, transition: { duration: 0.3 } },
   };
-
+  
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
