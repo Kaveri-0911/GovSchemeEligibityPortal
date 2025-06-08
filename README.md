@@ -41,7 +41,7 @@ We created a **user-friendly web app** that lists government schemes (central an
 | Area            | Tools / Technologies                   |
 |-----------------|----------------------------------------|
 | 💻 Frontend     | React, TypeScript, TailwindCSS, Vite   |
-| ⚙️ Backend      | JavaScript ,        |
+| ⚙️ Backend      | JavaScript         |
 | 🧮 Data Store   | Google Sheets / Firebase (for schemes) |
 | 🔗 Integration  | GitHub (version control & deployment)  |
 
