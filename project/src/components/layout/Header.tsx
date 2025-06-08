@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings, Shield } from 'lucide-react';
 import useUserStore from '../../store/useUserStore';
+import useAdminStore from '../../store/useAdminStore';
 import useLanguage from '../../hooks/useLanguage';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { isAuthenticated, user, logout } = useUserStore();
+  const { isAdminAuthenticated, admin, logoutAdmin } = useAdminStore();
   const { pathname } = useLocation();
   const { currentLanguage, changeLanguage, languages } = useLanguage();
 
@@ -16,6 +18,11 @@ const Header: React.FC = () => {
   
   const handleLogout = () => {
     logout();
+    setIsDropdownOpen(false);
+  };
+
+  const handleAdminLogout = () => {
+    logoutAdmin();
     setIsDropdownOpen(false);
   };
 
@@ -57,6 +64,15 @@ const Header: React.FC = () => {
           >
             Check Eligibility
           </Link>
+          <Link
+            to="/admin"
+            className={`text-gray-700 hover:text-primary transition-colors flex items-center ${
+              pathname === '/admin' ? 'font-medium text-primary' : ''
+            }`}
+          >
+            <Shield size={16} className="mr-1" />
+            Admin
+          </Link>
         </nav>
 
         {/* Right section: Language selector and auth */}
@@ -82,7 +98,44 @@ const Header: React.FC = () => {
           </div>
 
           {/* Auth buttons */}
-          {isAuthenticated ? (
+          {isAdminAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={toggleDropdown}
+                className="flex items-center space-x-2 text-gray-700 hover:text-primary"
+              >
+                <span className="font-medium">{admin?.username}</span>
+                <div className="h-8 w-8 bg-red-500 text-white rounded-full flex items-center justify-center">
+                  <Shield size={18} />
+                </div>
+              </button>
+
+              {/* Admin dropdown */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 py-2 bg-white rounded-md shadow-xl z-20">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <div className="text-sm font-medium text-gray-900">{admin?.username}</div>
+                    <div className="text-xs text-gray-500 capitalize">{admin?.role?.replace('_', ' ')}</div>
+                  </div>
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary"
+                  >
+                    <Settings size={16} className="mr-2" />
+                    Admin Panel
+                  </Link>
+                  <button
+                    onClick={handleAdminLogout}
+                    className="flex w-full items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-error"
+                  >
+                    <LogOut size={16} className="mr-2" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : isAuthenticated ? (
             <div className="relative">
               <button
                 onClick={toggleDropdown}
@@ -103,6 +156,14 @@ const Header: React.FC = () => {
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary"
                   >
                     Dashboard
+                  </Link>
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-primary"
+                  >
+                    <Shield size={16} className="mr-2" />
+                    Admin Login
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -145,6 +206,10 @@ const Header: React.FC = () => {
             <Link to="/eligibility" onClick={closeMenu} className="text-gray-700 hover:text-primary py-2">
               Check Eligibility
             </Link>
+            <Link to="/admin" onClick={closeMenu} className="text-gray-700 hover:text-primary py-2 flex items-center">
+              <Shield size={16} className="mr-1" />
+              Admin
+            </Link>
 
             {/* Language selector mobile */}
             <div className="py-2">
@@ -163,7 +228,31 @@ const Header: React.FC = () => {
             </div>
 
             {/* Auth buttons mobile */}
-            {isAuthenticated ? (
+            {isAdminAuthenticated ? (
+              <>
+                <div className="py-2 border-t border-gray-200">
+                  <div className="text-sm font-medium text-gray-900">{admin?.username}</div>
+                  <div className="text-xs text-gray-500 capitalize">{admin?.role?.replace('_', ' ')}</div>
+                </div>
+                <Link
+                  to="/admin"
+                  onClick={closeMenu}
+                  className="text-gray-700 hover:text-primary py-2"
+                >
+                  Admin Panel
+                </Link>
+                <button
+                  onClick={() => {
+                    handleAdminLogout();
+                    closeMenu();
+                  }}
+                  className="flex items-center text-gray-700 hover:text-error py-2"
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Logout
+                </button>
+              </>
+            ) : isAuthenticated ? (
               <>
                 <Link
                   to="/dashboard"
@@ -171,6 +260,13 @@ const Header: React.FC = () => {
                   className="text-gray-700 hover:text-primary py-2"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  to="/admin"
+                  onClick={closeMenu}
+                  className="text-gray-700 hover:text-primary py-2"
+                >
+                  Admin Login
                 </Link>
                 <button
                   onClick={() => {

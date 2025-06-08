@@ -11,6 +11,9 @@ interface SchemeState {
   getSchemeById: (id: string) => Promise<Scheme | null>;
   filterSchemes: (category?: SchemeCategory, query?: string, filters?: Partial<Record<string, any>>) => void;
   sortSchemes: (sortBy: 'title' | 'lastUpdated', order: 'asc' | 'desc') => void;
+  addScheme: (scheme: Scheme) => Promise<void>;
+  updateScheme: (scheme: Scheme) => Promise<void>;
+  deleteScheme: (id: string) => Promise<void>;
 }
 
 const mockSchemes: Scheme[] = [
@@ -370,6 +373,60 @@ const useSchemeStore = create<SchemeState>((set, get) => ({
     } catch (error) {
       set({ error: 'Failed to fetch scheme details', loading: false });
       return null;
+    }
+  },
+  
+  addScheme: async (scheme: Scheme) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set(state => ({
+        schemes: [...state.schemes, scheme],
+        filteredSchemes: [...state.filteredSchemes, scheme],
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: 'Failed to add scheme', loading: false });
+    }
+  },
+  
+  updateScheme: async (updatedScheme: Scheme) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set(state => ({
+        schemes: state.schemes.map(scheme => 
+          scheme.id === updatedScheme.id ? updatedScheme : scheme
+        ),
+        filteredSchemes: state.filteredSchemes.map(scheme => 
+          scheme.id === updatedScheme.id ? updatedScheme : scheme
+        ),
+        selectedScheme: state.selectedScheme?.id === updatedScheme.id ? updatedScheme : state.selectedScheme,
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: 'Failed to update scheme', loading: false });
+    }
+  },
+  
+  deleteScheme: async (id: string) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set(state => ({
+        schemes: state.schemes.filter(scheme => scheme.id !== id),
+        filteredSchemes: state.filteredSchemes.filter(scheme => scheme.id !== id),
+        selectedScheme: state.selectedScheme?.id === id ? null : state.selectedScheme,
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: 'Failed to delete scheme', loading: false });
     }
   },
   
