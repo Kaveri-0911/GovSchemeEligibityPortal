@@ -90,9 +90,9 @@ _
 
 ---
 
-## 🔗 GitHub Repo & Demo
+## 🔗 GitHub Repo 
 
-- **Repo:** [Insert GitHub link here]  
+- **Repo:** - https://github.com/Kaveri-0911/GovSchemeEligibityPortal.git 
 
 
 ---
