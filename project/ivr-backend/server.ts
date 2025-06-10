@@ -1,8 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
 // Update the import path below if eligibilityChecker.ts is in a different location
-import { checkEligibility } from './logic/eligibilityChecker';
+import { checkEligibility } from "./logic/eligibilityChecker";
+import { VoiceProcessor } from "./voiceProcessor";
 
 // If you need Request and Response types, import them like this:
 // import { Request, Response } from 'express';
@@ -13,18 +14,34 @@ const PORT = 3001;
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post('/api/ivr-check', (req, res) => {
+app.post("/api/ivr-check", (req, res) => {
   const { age, income } = req.body;
-  if (!age || !income) return res.status(400).send('Missing data');
+  if (!age || !income) return res.status(400).send("Missing data");
 
   try {
     const matchedSchemes = checkEligibility(age, income);
     const reply = matchedSchemes.length
-      ? `You are eligible for: ${matchedSchemes.map((s: { name: string }) => s.name).join(', ')}.`
-      : 'Sorry, no schemes match your details.';
+      ? `You are eligible for: ${matchedSchemes
+          .map((s: { name: string }) => s.name)
+          .join(", ")}.`
+      : "Sorry, no schemes match your details.";
     return res.send(reply);
   } catch {
-    return res.status(500).send('Internal Server Error');
+    return res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/api/voice-check", async (req, res) => {
+  const { audio } = req.body;
+  if (!audio) return res.status(400).send("Missing audio data");
+
+  try {
+    const voiceProcessor = new VoiceProcessor();
+    const audioBuffer = Buffer.from(audio, "base64");
+    const response = await voiceProcessor.processVoiceInput(audioBuffer);
+    return res.send(response);
+  } catch {
+    return res.status(500).send("Internal Server Error");
   }
 });
 
