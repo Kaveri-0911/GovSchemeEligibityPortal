@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Call Test</title>
+</head>
+<body>
+    <h1>Make a Voice Call</h1>
+    <form id="callForm">
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="tel" id="phoneNumber" required>
+        <br>
+        <label for="message">Message:</label>
+        <textarea id="message" required></textarea>
+        <br>
+        <button type="submit">Make Call</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('callForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const message = document.getElementById('message').value;
+            const result = document.getElementById('result');
+
+            try {
+                const response = await fetch('http://localhost:3001/api/make-call', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ to: phoneNumber, message }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    result.textContent = `Call initiated successfully. SID: ${data.callSid}`;
+                } else {
+                    result.textContent = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
